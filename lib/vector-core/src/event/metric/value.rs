@@ -554,7 +554,7 @@ impl ByteSizeOf for Sample {
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, PartialOrd, Serialize)]
 pub struct Bucket {
     pub upper_limit: f64,
-    pub count: u32,
+    pub count: u64,
 }
 
 impl ByteSizeOf for Bucket {

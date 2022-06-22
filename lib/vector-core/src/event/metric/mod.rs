@@ -257,7 +257,7 @@ impl Metric {
             Handle::Histogram(histogram) => {
                 let buckets: Vec<Bucket> = histogram
                     .buckets()
-                    .map(|(upper_limit, count)| Bucket { upper_limit, count })
+                    .map(|(upper_limit, count)| Bucket { upper_limit, count: count.into() })
                     .collect();
 
                 MetricValue::AggregatedHistogram {
@@ -488,7 +488,7 @@ pub(crate) fn zip_samples(
 #[inline]
 pub(crate) fn zip_buckets(
     limits: impl IntoIterator<Item = f64>,
-    counts: impl IntoIterator<Item = u32>,
+    counts: impl IntoIterator<Item = u64>,
 ) -> Vec<Bucket> {
     limits
         .into_iter()
@@ -558,7 +558,7 @@ pub fn samples_to_buckets(samples: &[Sample], buckets: &[f64]) -> (Vec<Bucket>, 
         .zip(counts.iter())
         .map(|(b, c)| Bucket {
             upper_limit: *b,
-            count: *c,
+            count: c.into(),
         })
         .collect();
 
