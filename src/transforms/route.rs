@@ -20,6 +20,7 @@ pub(crate) const UNMATCHED_ROUTE: &str = "_unmatched";
 pub struct Route {
     conditions: Vec<(String, Condition)>,
     reroute_unmatched: bool,
+    exclusive: bool,
 }
 
 impl Route {
@@ -32,6 +33,7 @@ impl Route {
         Ok(Self {
             conditions,
             reroute_unmatched: config.reroute_unmatched,
+            exclusive: config.exclusive,
         })
     }
 }
@@ -43,6 +45,9 @@ impl SyncTransform for Route {
             let (result, event) = condition.check(event.clone());
             if result {
                 output.push(Some(output_name), event);
+                if self.exclusive {
+                    return;
+                }
             } else {
                 check_failed += 1;
             }
@@ -73,6 +78,11 @@ pub struct RouteConfig {
     #[configurable(metadata(docs::human_name = "Reroute Unmatched Events"))]
     reroute_unmatched: bool,
 
+    /// Exclusive Routing
+    #[serde(default = "crate::serde::default_false")]
+    #[configurable(metadata(docs::human_name = "Exclusive Routing"))]
+    exclusive: bool,
+
     /// A table of route identifiers to logical conditions representing the filter of the route.
     ///
     /// Each route can then be referenced as an input by other components with the name
@@ -90,6 +100,7 @@ impl GenerateConfig for RouteConfig {
     fn generate_config() -> toml::Value {
         toml::Value::try_from(Self {
             reroute_unmatched: true,
+            exclusive: false,
             route: IndexMap::new(),
         })
         .unwrap()
